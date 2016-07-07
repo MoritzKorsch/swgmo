@@ -9,8 +9,14 @@
 
 <ul id="navigation">
     <li><a href="/secu/">Start / Main</a></li>
-    <li><a href="login.secu">Login</a></li>
-    <li><a href="logout.secu">Logout</a></li>
+    <% if( session.getAttribute("loggedIn") != null ) {%>
+    	<% if( (Boolean) session.getAttribute("loggedIn") ) { %>
+    		<li><a href="logout.secu">Logout</a></li>
+    	<% } %>
+    <% } else { %>
+    	<li><a href="login.secu">Login</a></li>
+    	<li><a href="register.secu">Register</a></li>
+    <% } %>
     <li><a href="texts.secu">Manage Texts</a></li>
     <li><a href="projects.secu">Manage Projects</a></li>
 </ul>
