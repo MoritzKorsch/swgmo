@@ -1,5 +1,7 @@
 package edu.hm.muse.controller;
 
+import java.util.List;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import mapper.ProjectMapper;
+import stuff.Project;
 import stuff.SessionInfo;
 
 @Controller
@@ -27,14 +31,21 @@ public class ProjectController {
 	public ModelAndView showProjectsOverview(HttpSession session, SessionInfo info) {
 		ModelAndView mv = new ModelAndView("projects");
 		
+		// TODO: userID über info.getUserID(session) is statement aufnehmen
 		String sql = "SELECT count(*) FROM PROJECTS";
+		
 		int projCount = jdbcTemplate.queryForInt(sql);
 		
 		if(projCount == 0) {
 			mv.addObject("projCount", projCount);
 			return mv;
 		}
+		
+		sql = "SELECT * FROM PROJECTS";
+		List<Project> projects = jdbcTemplate.query( sql, new ProjectMapper() );
+		
 		mv.addObject("projCount", projCount);
+		mv.addObject("projects", projects);
 		return mv;
 	}
 	
@@ -63,10 +74,11 @@ public class ProjectController {
 			return invalidForm("A project needs a description");
 		}
 		
-		String sql = "INSERT INTO PROJECTS (name, description, creatorID) values (?, ?, ?)";
+		String sql = "INSERT INTO PROJECTS (name, description, ownerID) values (?, ?, ?)";
 		try{
 			jdbcTemplate.update( sql, new Object[] { name, desc, info.getUserID(session) } );
 		}catch(Exception e){
+			//sollte geändert werden
 			return new ModelAndView("redirect : errorpage.secu");
 		}
 		
@@ -83,9 +95,21 @@ public class ProjectController {
 	}
 	
 	@RequestMapping(value = "/projectDelete.secu", method = RequestMethod.POST)
-	public ModelAndView deleteProject(HttpSession session){
+	public ModelAndView deleteProject(
+			HttpSession session, 
+			@RequestParam(value = "id", required = true) int id){
 		
-		return new ModelAndView("redirect:projects.secu");
+		ModelAndView mv = new ModelAndView("redirect:projects.secu");
+		
+		try{
+			String sql = "DELETE FROM PROJECTS WHERE ID = ?";
+			jdbcTemplate.update(sql, new Object[] {Integer.valueOf(id)});
+		}catch(Exception e){
+			return new ModelAndView("redirect: errorpage.secu");
+		}
+		
+		mv.addObject("msg", "Project deleted successfully");
+		return mv;
 	}
 	
 	private ModelAndView invalidForm(String msg) {

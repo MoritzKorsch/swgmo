@@ -8,22 +8,22 @@ public class Project {
 	private final int id;
 	private String title, description;
 	private List<Text> content = new ArrayList<Text>();
-	private final User owner;
+	private final int owner;
 	
-	public Project(int id, String title, String description, List<Text> content, User owner) {
+	public Project(int id, String title, String description, List<Text> content, int owner) {
 		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.content = content;
 		this.owner = owner;
 	}
-	public Project(int id, String title, String description, User owner) {
+	public Project(int id, String title, String description, int owner) {
 		this(id, title, description, new ArrayList<Text>(), owner);
 	}
-	public Project(int id, String title, User owner) {
+	public Project(int id, String title, int owner) {
 		this(id, title, "", owner);
 	}
-	public Project(int id, User owner) {
+	public Project(int id, int owner) {
 		this(id, "no title", owner);
 	}
 	
@@ -47,13 +47,13 @@ public class Project {
 	}
 	
 	public List<Text> getContent() {
-	return content;
+		return content;
 	}
 	public void setContent(List<Text> newContent) {
 		content = newContent;
 	}
 	
-	public User getOwner() {
+	public int getOwner() {
 		return owner;
 	}
 	
