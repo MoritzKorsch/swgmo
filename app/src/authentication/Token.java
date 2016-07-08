@@ -7,6 +7,10 @@ import javax.servlet.http.HttpSession;
 public class Token {
 	private final int value;
 	
+	public Token(HttpSession session) {
+		this();
+		setSessionToken(session);
+	}
 	public Token() {
 		value = new SecureRandom().nextInt();
 	}
@@ -18,4 +22,6 @@ public class Token {
 	public void setSessionToken(HttpSession session) {
 		session.setAttribute("Token", getValue());
 	}
+	
+	//TODO @Override public boolean equals(Object obj) {}
 }

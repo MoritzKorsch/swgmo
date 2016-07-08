@@ -37,7 +37,10 @@
 
 package edu.hm.muse.controller;
 
+import edu.hm.muse.*;
 import edu.hm.muse.exception.SuperFatalAndReallyAnnoyingException;
+
+import org.apache.commons.logging.Log;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
@@ -45,6 +48,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import authentication.Authentication;
+import authentication.Token;
 
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
@@ -57,6 +63,8 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.Types;
 
 @Controller
@@ -70,59 +78,76 @@ public class Logincontroller {
     }
 
     @RequestMapping(value = "/login.secu", method = RequestMethod.GET)
-    public ModelAndView showLoginScreen() {
+    public ModelAndView showLoginScreen(HttpSession session, SessionInfo sessionInfo) {
     	
         ModelAndView mv = new ModelAndView("login");
+        Authentication auth = new Authentication();
+        Token token = new Token(session);
+        
         mv.addObject("msg", "Enter name and password");
+        mv.addObject("isLoggedIn", sessionInfo.isLoggedIn(session));
+        mv.addObject("mname", "");
+        mv.addObject("Token", token);
         return mv;
     }
 
-    @RequestMapping(value = "/adminlogin.secu", method = RequestMethod.GET)
-    public ModelAndView showAdminLoginScreen(HttpSession session) {
-        ModelAndView mv = new ModelAndView("adminlogin");
-        mv.addObject("msg", "Enter password");
-
-        SecureRandom random = new SecureRandom();
-
-        int token = random.nextInt();
-
-        mv.addObject("csrftoken",token);
-        session.setAttribute("csrftoken",token);
-
-        return mv;
-    }
-
-
+    //showAdminLoginScreen()
+    
+    //TODO (line + 5) Token Token? Marco String Token.
+    
     @RequestMapping(value = "/login.secu", method = RequestMethod.POST)
-    public ModelAndView doSomeLogin(@RequestParam(value = "mname", required = false) String mname, @RequestParam(value = "mpwd", required = false) String mpwd, HttpSession session) {
-        if (null == mname || null == mpwd || mname.isEmpty() || mpwd.isEmpty()) {
-            throw new SuperFatalAndReallyAnnoyingException("required fields must not be empty!");
+    public ModelAndView doSomeLogin(@RequestParam(value = "mname", required = false) String mname, 
+    		@RequestParam(value = "mpwd", required = false) String mpwd, 
+    		@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
+        
+    	if (null == mname || null == mpwd || mname.isEmpty() || mpwd.isEmpty()) {
+            return returnToLogin(session, "Required Fields mustn't be empty!");
+    		//throw new SuperFatalAndReallyAnnoyingException("required fields must not be empty!");
+        } else if (null == token || !(new Authentication().authenticate((Token) session.getAttribute("Token"), token))) {
+        	return returnToLogin(session, "Authentication error!");
         }
+    	
+    	//This is the prepared sql statement
+    	String sql = "select count(*) from M_USER where muname = ?";
+    	int temp = 0;
+    	try {
+    		temp = jdbcTemplate.queryForInt(sql, new Object[]{mname});
+    	} catch (Exception e) {
+    		return returnToLogin(session, "No chance for SQL injections!");
+    	} finally {
+    		if (temp <= 0) {
+    			return returnToLogin(session, "User not found!");
+    		} else {
+    			//user.getSalt
+    			//hash password and save
+    		}
+    	}
+    	
 
-        //This is the sql statement
-        String sql = String.format("select count(*) from M_USER where muname = '%s' and mpwd = '%s'", mname, mpwd);
-
-        int res = 0;
-        try {
-            //Here is the sql magic
-            //TODO:Possibly this is unsecure, but I am only a low paid code scripter...perhaps there is a option to bring prepared
-            //statements into this sql-query.
-            //But I found a possible solution here http://static.springsource.org/spring/docs/3.0.x/reference/html/jdbc.html#jdbc-JdbcTemplate-idioms
-            //I think the easiest way is to build the sql statements with ? instead of concatenation
-            res = jdbcTemplate.queryForInt(sql);
-        } catch (DataAccessException e) {
-            throw new SuperFatalAndReallyAnnoyingException(String.format("Sorry but %sis a bad grammar or has following problem %s", sql, e.getMessage()));
-        }
-
-        //If there are any results, than the username and password is correct
-        if (res > 0) {
-            session.setAttribute("user", mname);
-            session.setAttribute("login", true);
-            return new ModelAndView("redirect:intern.secu");
-        }
-        //Ohhhhh not correct try again
-        ModelAndView mv = returnToLogin(session);
-        return mv;
+    	
+    	
+    	
+//        int res = 0;
+//        try {
+//            //Here is the sql magic
+//            //TODO:Possibly this is unsecure, but I am only a low paid code scripter...perhaps there is a option to bring prepared
+//            //statements into this sql-query.
+//            //But I found a possible solution here http://static.springsource.org/spring/docs/3.0.x/reference/html/jdbc.html#jdbc-JdbcTemplate-idioms
+//            //I think the easiest way is to build the sql statements with ? instead of concatenation
+//            res = jdbcTemplate.queryForInt(sql);
+//        } catch (DataAccessException e) {
+//            throw new SuperFatalAndReallyAnnoyingException(String.format("Sorry but %sis a bad grammar or has following problem %s", sql, e.getMessage()));
+//        }
+//
+//        //If there are any results, than the username and password is correct
+//        if (res > 0) {
+//            session.setAttribute("user", mname);
+//            session.setAttribute("login", true);
+//            return new ModelAndView("redirect:intern.secu");
+//        }
+//        //Ohhhhh not correct try again
+//        ModelAndView mv = returnToLogin(session);
+//        return mv;
     }
 
     @RequestMapping(value = "/adminlogin.secu", method = RequestMethod.POST)
@@ -178,10 +203,10 @@ public class Logincontroller {
         return mv;
     }
 
-    private ModelAndView returnToLogin(HttpSession session) {
+    private ModelAndView returnToLogin(HttpSession session, String msg) {
         //Ohhhhh not correct try again
         ModelAndView mv = new ModelAndView("login");
-        mv.addObject("msg", "Sorry try again");
+        mv.addObject("msg", msg);
         session.setAttribute("login", false);
         return mv;
     }
