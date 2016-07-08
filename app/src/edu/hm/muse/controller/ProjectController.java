@@ -57,6 +57,7 @@ public class ProjectController {
 		return mv;
 	}
 	
+	// maybe do this in an interface
     private ModelAndView returnToLogin(HttpSession session, String msg) {
         ModelAndView mv = new ModelAndView("login");
         mv.addObject("msg", msg);
