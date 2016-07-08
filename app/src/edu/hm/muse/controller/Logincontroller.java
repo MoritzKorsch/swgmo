@@ -71,6 +71,7 @@ public class Logincontroller {
 
     @RequestMapping(value = "/login.secu", method = RequestMethod.GET)
     public ModelAndView showLoginScreen() {
+    	
         ModelAndView mv = new ModelAndView("login");
         mv.addObject("msg", "Enter name and password");
         return mv;
@@ -95,7 +96,7 @@ public class Logincontroller {
     @RequestMapping(value = "/login.secu", method = RequestMethod.POST)
     public ModelAndView doSomeLogin(@RequestParam(value = "mname", required = false) String mname, @RequestParam(value = "mpwd", required = false) String mpwd, HttpSession session) {
         if (null == mname || null == mpwd || mname.isEmpty() || mpwd.isEmpty()) {
-            throw new SuperFatalAndReallyAnnoyingException("I can not process, because the requestparam mname or mpwd is empty or null or something like this");
+            throw new SuperFatalAndReallyAnnoyingException("required fields must not be empty!");
         }
 
         //This is the sql statement
