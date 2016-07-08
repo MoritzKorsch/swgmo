@@ -39,6 +39,7 @@ package edu.hm.muse.controller;
 
 import edu.hm.muse.*;
 import edu.hm.muse.exception.SuperFatalAndReallyAnnoyingException;
+import stuff.SessionInfo;
 
 import org.apache.commons.logging.Log;
 import org.springframework.dao.DataAccessException;
@@ -122,6 +123,7 @@ public class Logincontroller {
     			//hash password and save
     		}
     	}
+		return new ModelAndView();
     	
 
     	
