@@ -47,7 +47,7 @@ public class Project {
 	}
 	
 	public List<Text> getContent() {
-	return content;
+		return content;
 	}
 	public void setContent(List<Text> newContent) {
 		content = newContent;

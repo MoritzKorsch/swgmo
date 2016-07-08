@@ -63,7 +63,7 @@ public class ProjectController {
 			return invalidForm("A project needs a description");
 		}
 		
-		String sql = "INSERT INTO PROJECTS (name, description, creatorID) values (?, ?, ?)";
+		String sql = "INSERT INTO PROJECTS (name, description, ownerID) values (?, ?, ?)";
 		try{
 			jdbcTemplate.update( sql, new Object[] { name, desc, info.getUserID(session) } );
 		}catch(Exception e){
