@@ -24,7 +24,7 @@
 		</c:when>
 		<c:otherwise>
 	    	<li><a href="login.secu">Login</a></li>
-	   		<li><a href="register.secu">Register</a></li>
+	   		<li><a href="registration.secu">Register</a></li>
 	   	</c:otherwise>
  	</c:choose>
     <li><a href="texts.secu">Manage Texts</a></li>

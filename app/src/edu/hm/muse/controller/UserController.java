@@ -22,7 +22,7 @@ public class UserController {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 	
-	@RequestMapping(value = "/projects.secu", method = RequestMethod.GET)
+	@RequestMapping(value = "/user.secu", method = RequestMethod.GET)
 	public ModelAndView createUser(
 			) {
 		ModelAndView mv = new ModelAndView("Users");

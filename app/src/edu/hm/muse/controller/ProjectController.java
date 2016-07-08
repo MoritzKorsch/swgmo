@@ -27,6 +27,7 @@ public class ProjectController {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 	
+	
 	@RequestMapping(value = "/projects.secu", method = RequestMethod.GET)
 	public ModelAndView showProjectsOverview(HttpSession session, SessionInfo info) {
 		ModelAndView mv = new ModelAndView("projects");
@@ -49,6 +50,7 @@ public class ProjectController {
 		return mv;
 	}
 	
+	
 	@RequestMapping(value = "/projectCreate.secu", method = RequestMethod.GET)
 	public ModelAndView createProject(
 			HttpSession session,
@@ -59,10 +61,12 @@ public class ProjectController {
 		return mv;
 	}
 	
+	
 	@RequestMapping(value = "/projectSave.secu", method = RequestMethod.POST)
 	public ModelAndView saveProject(
 			@RequestParam(value = "name", required = true) String name,
 			@RequestParam(value = "description", required = true) String desc,
+			@RequestParam(value = "id", required = false) Integer id,
 			HttpSession session,
 			SessionInfo info
 			) {
@@ -74,25 +78,49 @@ public class ProjectController {
 			return invalidForm("A project needs a description");
 		}
 		
-		String sql = "INSERT INTO PROJECTS (name, description, ownerID) values (?, ?, ?)";
-		try{
-			jdbcTemplate.update( sql, new Object[] { name, desc, info.getUserID(session) } );
-		}catch(Exception e){
-			//sollte geändert werden
-			return new ModelAndView("redirect : errorpage.secu");
+		ModelAndView mv = new ModelAndView("redirect:projects.secu");
+		
+		if(id == null) {	
+			String sql = "INSERT INTO PROJECTS (name, description, ownerID) values (?, ?, ?)";
+			try{
+				jdbcTemplate.update( sql, new Object[] { name, desc, info.getUserID(session) } );
+			}catch(Exception e){
+				//sollte geändert werden
+				return new ModelAndView("redirect : errorpage.secu");
+			}
+			
+			mv.addObject("msg", "Project created successfully");
+		} else {
+			String sql = "UPDATE PROJECTS SET name = ?, description = ? WHERE id = ?";
+			try{
+				jdbcTemplate.update( sql, new Object[] { name, desc, Integer.valueOf(id) } );
+			}catch(Exception e){
+				//sollte geändert werden
+				return new ModelAndView("redirect : errorpage.secu");
+			}
+			
+			mv.addObject("msg", "Project saved successfully");
 		}
 		
-		ModelAndView mv = new ModelAndView("redirect:projects.secu");
-		mv.addObject("msg", "Project created successfully");
+		
+		
 		return mv;
 	}
 	
+	
 	@RequestMapping(value = "/projectEdit.secu", method = RequestMethod.GET)
-	public ModelAndView editProject(HttpSession session) {
+	public ModelAndView editProject(
+			HttpSession session, 
+			@RequestParam(value = "id", required = true) int id) {
 		ModelAndView mv = new ModelAndView("projectEdit");
 		
+		String sql = "SELECT * FROM PROJECTS WHERE ID = id";
+		List<Project> projects = jdbcTemplate.query( sql, new ProjectMapper() );
+		System.out.println(projects);
+		mv.addObject("project", projects.get(0));
 		return mv;
 	}
+	
 	
 	@RequestMapping(value = "/projectDelete.secu", method = RequestMethod.POST)
 	public ModelAndView deleteProject(
@@ -111,6 +139,7 @@ public class ProjectController {
 		mv.addObject("msg", "Project deleted successfully");
 		return mv;
 	}
+	
 	
 	private ModelAndView invalidForm(String msg) {
 		ModelAndView mv = new ModelAndView("redirect:projectCreate.secu");	

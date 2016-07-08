@@ -25,6 +25,7 @@
 			<td>${p.owner}</td>
 			<td>
 				<form action="projectEdit.secu" method="get">
+					<input type="hidden" name="id" id="id" value="${p.id}">
 					<input type="submit" value="edit">					
 				</form>
 				<form action="projectDelete.secu" method="post">
@@ -36,9 +37,5 @@
 	</c:forEach>
 	</table>
 </c:if>
-<p>
 
-
-
-</p>
 <jsp:include page="../../foot.jsp"/>
