@@ -34,6 +34,7 @@ public class ProjectController {
 	public ModelAndView showProjectsOverview(@RequestParam(value = "name", required = false) String name, 
     		@RequestParam(value = "description", required = false) String description, 
     		@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
+		
 		ModelAndView mv = new ModelAndView("projects");
 		
 		if (null == name || name.isEmpty()) return returnToLogin(session, "Required Fields mustn't be empty!");
@@ -56,6 +57,7 @@ public class ProjectController {
 		return mv;
 	}
 	
+	// maybe do this in an interface
     private ModelAndView returnToLogin(HttpSession session, String msg) {
         ModelAndView mv = new ModelAndView("login");
         mv.addObject("msg", msg);
@@ -81,8 +83,7 @@ public class ProjectController {
 			@RequestParam(value = "description", required = true) String desc,
 			@RequestParam(value = "id", required = false) Integer id,
 			HttpSession session,
-			SessionInfo info
-			) {
+			SessionInfo sessionInfo) {
 		
 		if(name == null || name == "" || name.isEmpty()) {
 			return invalidForm("A project needs a name");
@@ -96,7 +97,7 @@ public class ProjectController {
 		if(id == null) {	
 			String sql = "INSERT INTO PROJECTS (name, description, ownerID) values (?, ?, ?)";
 			try{
-				jdbcTemplate.update( sql, new Object[] { name, desc, info.getUserID(session) } );
+				jdbcTemplate.update( sql, new Object[] { name, desc, sessionInfo.getUserID(session) } );
 			}catch(Exception e){
 				//sollte geändert werden
 				return new ModelAndView("redirect : errorpage.secu");
