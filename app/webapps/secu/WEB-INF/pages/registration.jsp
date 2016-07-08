@@ -2,7 +2,7 @@
 
 <jsp:include page="../../head.jsp"/>
 <h3>Registration:</h3>
-<form action="foobar.secu" type="post">
+<form action="registration.secu" type="post">
 	<label for="name">Name</label>
 	<input type="text" name="name" id="name">
 	<p></p>

@@ -1,4 +1,4 @@
-package edu.hm.muse.domain;
+package edu.hm.muse.controller;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -16,7 +16,7 @@ import authentication.Token;
 import stuff.PatternChecker;
 import stuff.SessionInfo;
 
-public class Registration {
+public class RegistrationController {
 	
 	private JdbcTemplate jdbcTemplate;
 	
@@ -43,7 +43,7 @@ public class Registration {
 		
 		if (name == null || pass == null || passConf == null || name == "" || pass == "" || passConf == "" 
 				|| !pass.equals(passConf)) {
-			return returnToRegistration(session,"No empty fields allowed!");
+			return returnToRegistration(session, "Required Fields mustn't be empty!");
 		}
 		
 		else if (!(new PatternChecker(name).checkUserName())) return returnToRegistration(session, "Please don't use fancy symbols in the username!");

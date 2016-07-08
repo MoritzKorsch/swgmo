@@ -39,7 +39,9 @@ package edu.hm.muse.controller;
 
 import edu.hm.muse.*;
 import edu.hm.muse.exception.SuperFatalAndReallyAnnoyingException;
+import mapper.UserMapper;
 import stuff.SessionInfo;
+import stuff.User;
 
 import org.apache.commons.logging.Log;
 import org.springframework.dao.DataAccessException;
@@ -82,7 +84,6 @@ public class Logincontroller {
     public ModelAndView showLoginScreen(HttpSession session, SessionInfo sessionInfo) {
     	
         ModelAndView mv = new ModelAndView("login");
-        Authentication auth = new Authentication();
         Token token = new Token(session);
         
         mv.addObject("msg", "Enter name and password");
@@ -92,37 +93,32 @@ public class Logincontroller {
         return mv;
     }
 
-    //showAdminLoginScreen()
-    
-    //TODO (line + 5) Token Token? Marco String Token.
-    
     @RequestMapping(value = "/login.secu", method = RequestMethod.POST)
-    public ModelAndView doSomeLogin(@RequestParam(value = "mname", required = false) String mname, 
-    		@RequestParam(value = "mpwd", required = false) String mpwd, 
+    public ModelAndView doSomeLogin(@RequestParam(value = "name", required = false) String name, 
+    		@RequestParam(value = "pass", required = false) String pass, 
     		@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
         
-    	if (null == mname || null == mpwd || mname.isEmpty() || mpwd.isEmpty()) {
+    	if (null == name || null == pass || name.isEmpty() || pass.isEmpty()) {
             return returnToLogin(session, "Required Fields mustn't be empty!");
     		//throw new SuperFatalAndReallyAnnoyingException("required fields must not be empty!");
         } else if (null == token || !(new Authentication().authenticateToken((Token) session.getAttribute("Token"), token))) {
         	return returnToLogin(session, "Authentication error!");
         }
     	
-    	//This is the prepared sql statement
-    	String sql = "select count(*) from M_USER where muname = ?";
-    	int temp = 0;
+    	String sqlGetUser = "SELECT * FROM USER WHERE name = ?";
+    	User temp;
     	try {
-    		temp = jdbcTemplate.queryForInt(sql, new Object[]{mname});
+    		temp = jdbcTemplate.queryForObject(sql, new Object[]{name});
+    	
     	} catch (Exception e) {
     		return returnToLogin(session, "No chance for SQL injections!");
-    	} finally {
-    		if (temp <= 0) {
-    			return returnToLogin(session, "User not found!");
-    		} else {
-    			//user.getSalt
-    			//hash password and save
-    		}
     	}
+		if (temp <= 0) {
+			return returnToLogin(session, "User not found!");
+		} else {
+			User user = new UserMapper().mapRow(
+			//hash password and save
+		}
 		return new ModelAndView();
     	
 
