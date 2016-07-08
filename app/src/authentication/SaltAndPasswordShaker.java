@@ -15,13 +15,13 @@ public class SaltAndPasswordShaker {
 	
 	public String hashPassword(String pass, byte[] salt) {
 		String output;
-		byte[] bpwd = pass.getBytes();
-		byte[] saltedPw = new byte[bpwd.length + salt.length];
+		byte[] passBytes = pass.getBytes();
+		byte[] saltedPw = new byte[passBytes.length + salt.length];
 		try {
 
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-			System.arraycopy(bpwd, 0, saltedPw, 0, bpwd.length);
-			System.arraycopy(salt, 0, saltedPw, bpwd.length, salt.length);
+			System.arraycopy(passBytes, 0, saltedPw, 0, passBytes.length);
+			System.arraycopy(salt, 0, saltedPw, passBytes.length, salt.length);
 			digest.update(saltedPw);
 			byte[] md = digest.digest();
 			output = byteToString(md);

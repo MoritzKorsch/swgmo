@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import authentication.Authentication;
+import authentication.Token;
 import mapper.ProjectMapper;
 import stuff.Project;
 import stuff.SessionInfo;
@@ -29,27 +31,38 @@ public class ProjectController {
 	
 	
 	@RequestMapping(value = "/projects.secu", method = RequestMethod.GET)
-	public ModelAndView showProjectsOverview(HttpSession session, SessionInfo info) {
+	public ModelAndView showProjectsOverview(@RequestParam(value = "name", required = false) String name, 
+    		@RequestParam(value = "description", required = false) String description, 
+    		@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
 		ModelAndView mv = new ModelAndView("projects");
 		
-		// TODO: userID über info.getUserID(session) is statement aufnehmen
-		String sql = "SELECT count(*) FROM PROJECTS";
+		if (null == name || name.isEmpty()) return returnToLogin(session, "Required Fields mustn't be empty!");
+        else if (null == token || !(new Authentication().authenticateToken((Token) session.getAttribute("Token"), token))) {
+        	return returnToLogin(session, "Authentication error!");
+        }
 		
-		int projCount = jdbcTemplate.queryForInt(sql);
-		
-		if(projCount == 0) {
-			mv.addObject("projCount", projCount);
-			return mv;
-		}
-		
-		sql = "SELECT * FROM PROJECTS";
-		List<Project> projects = jdbcTemplate.query( sql, new ProjectMapper() );
-		
-		mv.addObject("projCount", projCount);
-		mv.addObject("projects", projects);
+		String sqlGetProjects = "SELECT * FROM PROJECTS WHERE ownerID = ?";
+		List<Project> projectsForUser;
+
+		try {
+			projectsForUser = jdbcTemplate.query(sqlGetProjects, new Object[]{session.getAttribute("name")}, new ProjectMapper());
+    	} catch (Exception e) {
+    		return returnToLogin(session, "No chance for SQL injections!");
+    	}
+		if (projectsForUser.size() == 0) return returnToLogin(session, "No projects found!");
+
+		mv.addObject("projCount", projectsForUser.size());
+		mv.addObject("projects", projectsForUser);
 		return mv;
 	}
 	
+    private ModelAndView returnToLogin(HttpSession session, String msg) {
+        ModelAndView mv = new ModelAndView("login");
+        mv.addObject("msg", msg);
+        session.setAttribute("login", false);
+        return mv;
+    }
+
 	
 	@RequestMapping(value = "/projectCreate.secu", method = RequestMethod.GET)
 	public ModelAndView createProject(
