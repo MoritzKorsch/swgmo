@@ -37,9 +37,9 @@ public class RegistrationController {
 	}
 	
 	@RequestMapping(value = "/registration.secu", method = RequestMethod.POST)
-	public ModelAndView register(@RequestParam(value = "name", required = false) String name,
-			@RequestParam(value = "pass", required = false) String pass,
-			@RequestParam(value = "passConf", required = false) String passConf,
+	public ModelAndView registerUser(@RequestParam(value = "name", required = true) String name,
+			@RequestParam(value = "pass", required = true) String pass,
+			@RequestParam(value = "passConf", required = true) String passConf,
 			@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
 		
 		if (name == null || pass == null || passConf == null || name == "" || pass == "" || passConf == "" 
