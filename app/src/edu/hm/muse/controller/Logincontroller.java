@@ -37,14 +37,14 @@
 
 package edu.hm.muse.controller;
 
-import edu.hm.muse.*;
-import edu.hm.muse.exception.SuperFatalAndReallyAnnoyingException;
-import mapper.UserMapper;
-import stuff.SessionInfo;
-import stuff.User;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 
-import org.apache.commons.logging.Log;
-import org.springframework.dao.DataAccessException;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,27 +55,15 @@ import org.springframework.web.servlet.ModelAndView;
 import authentication.Authentication;
 import authentication.SaltAndPasswordShaker;
 import authentication.Token;
-
-import javax.annotation.Resource;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Types;
+import mapper.UserMapper;
+import stuff.SessionInfo;
+import stuff.User;
 
 @Controller
-public class Logincontroller {
+public class LoginController {
 
     private JdbcTemplate jdbcTemplate;
-
+    
     @Resource(name = "dataSource")
     public void setDataSource(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -116,7 +104,6 @@ public class Logincontroller {
 		if (temp == null) {
 			return returnToLogin(session, "User not found!");
 		}
-		SaltAndPasswordShaker snp = new SaltAndPasswordShaker();
 		temp.getPasswordHash();
 		temp.getSalt();
 		if (!(temp.getPasswordHash().equals(new SaltAndPasswordShaker().hashPassword(pass, temp.getSalt())))) {
@@ -130,59 +117,6 @@ public class Logincontroller {
 			session.setAttribute("login", true);
 			return new ModelAndView("redirect:index.secu");
 		}
-    }
-
-    @RequestMapping(value = "/adminlogin.secu", method = RequestMethod.POST)
-    public ModelAndView doAdminLogin(@RequestParam(value = "mpwd", required = false) String mpwd,@RequestParam(value = "csrftoken",required = false) String csrfParam,HttpServletResponse response, HttpSession session) {
-        if (null == mpwd || mpwd.isEmpty()) {
-            throw new SuperFatalAndReallyAnnoyingException("I can not process, because the requestparam mpwd is empty or null or something like this");
-        }
-
-        String sql = "select count (*) from M_ADMIN where mpwd = ?";
-
-        try {
-            String digest = calculateSHA256(new ByteArrayInputStream(mpwd.getBytes("UTF8")));
-
-            int res = 0;
-
-            res = jdbcTemplate.queryForInt(sql,new Object[]{digest},new int[]{Types.VARCHAR});
-
-            Integer csrfTokenSess = (Integer) session.getAttribute("csrftoken");
-            if (res != 0 && csrfParam != null && !csrfParam.isEmpty() && csrfTokenSess != null) {
-                Integer csrfParamToken = Integer.parseInt(csrfParam);
-                if (csrfParamToken.intValue() == csrfTokenSess.intValue()) {
-                    SecureRandom random = new SecureRandom();
-                    int token = random.nextInt();
-                    session.setAttribute("user", "admin");
-                    session.setAttribute("login", true);
-                    session.setAttribute("admintoken",token);
-                    response.addCookie(new Cookie("admintoken",String.valueOf(token)));
-                    session.removeAttribute("csrftoken");
-                    return new ModelAndView("redirect:adminintern.secu");
-                }
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        catch (ClassCastException ccastEx){
-           ccastEx.printStackTrace();
-        }
-        catch (NumberFormatException nfoEx){
-            nfoEx.printStackTrace();
-        }
-        catch (DataAccessException e) {
-            throw new SuperFatalAndReallyAnnoyingException(String.format("Sorry but %sis a bad grammar or has following problem %s", sql, e.getMessage()));
-        }
-        ModelAndView mv = returnToAdminLogin(session);
-        return mv;
-    }
-
-    private ModelAndView returnToAdminLogin(HttpSession session) {
-        //Ohhhhh not correct try again
-        ModelAndView mv = new ModelAndView("redirect:adminlogin.secu");
-        mv.addObject("msg", "Sorry try again");
-        session.setAttribute("login", false);
-        return mv;
     }
 
     private ModelAndView returnToLogin(HttpSession session, String msg) {

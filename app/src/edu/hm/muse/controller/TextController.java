@@ -1,9 +1,17 @@
 package edu.hm.muse.controller;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import authentication.Token;
+import stuff.SessionInfo;
 
 public class TextController {
 	private JdbcTemplate jdbcTemplate;
@@ -13,5 +21,18 @@ public class TextController {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 	
-	
+	@RequestMapping(value = "/texts.secu", method = RequestMethod.GET)
+	public ModelAndView showProjectsOverview(@RequestParam(value = "name", required = false) String name, 
+    		@RequestParam(value = "content", required = false) String content, 
+    		@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
+		
+		ModelAndView mv = new ModelAndView("texts");
+//
+//		if (null == name || name.isEmpty()) return returnToLogin(session, "Required Fields mustn't be empty!");
+//        else if (null == token || !(new Authentication().authenticateToken((Token) session.getAttribute("Token"), token))) {
+//        	return returnToLogin(session, "Authentication error!");
+//        }
+//		
+		return mv;
+	}
 }
