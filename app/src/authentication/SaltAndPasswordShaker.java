@@ -13,9 +13,9 @@ public class SaltAndPasswordShaker {
 		return salt;
 	}
 	
-	public String hashPassword(String mpwd, byte[] salt) {
+	public String hashPassword(String pass, byte[] salt) {
 		String output;
-		byte[] bpwd = mpwd.getBytes();
+		byte[] bpwd = pass.getBytes();
 		byte[] saltedPw = new byte[bpwd.length + salt.length];
 		try {
 

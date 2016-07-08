@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import authentication.Authentication;
+import authentication.SaltAndPasswordShaker;
 import authentication.Token;
 
 import javax.annotation.Resource;
@@ -108,44 +109,27 @@ public class Logincontroller {
     	String sqlGetUser = "SELECT * FROM USER WHERE name = ?";
     	User temp;
     	try {
-    		temp = jdbcTemplate.queryForObject(sql, new Object[]{name});
-    	
+    		temp = jdbcTemplate.queryForObject(sqlGetUser, new Object[]{name}, new UserMapper());
     	} catch (Exception e) {
     		return returnToLogin(session, "No chance for SQL injections!");
     	}
-		if (temp <= 0) {
+		if (temp == null) {
 			return returnToLogin(session, "User not found!");
-		} else {
-			User user = new UserMapper().mapRow(
-			//hash password and save
 		}
-		return new ModelAndView();
-    	
-
-    	
-    	
-    	
-//        int res = 0;
-//        try {
-//            //Here is the sql magic
-//            //TODO:Possibly this is unsecure, but I am only a low paid code scripter...perhaps there is a option to bring prepared
-//            //statements into this sql-query.
-//            //But I found a possible solution here http://static.springsource.org/spring/docs/3.0.x/reference/html/jdbc.html#jdbc-JdbcTemplate-idioms
-//            //I think the easiest way is to build the sql statements with ? instead of concatenation
-//            res = jdbcTemplate.queryForInt(sql);
-//        } catch (DataAccessException e) {
-//            throw new SuperFatalAndReallyAnnoyingException(String.format("Sorry but %sis a bad grammar or has following problem %s", sql, e.getMessage()));
-//        }
-//
-//        //If there are any results, than the username and password is correct
-//        if (res > 0) {
-//            session.setAttribute("user", mname);
-//            session.setAttribute("login", true);
-//            return new ModelAndView("redirect:intern.secu");
-//        }
-//        //Ohhhhh not correct try again
-//        ModelAndView mv = returnToLogin(session);
-//        return mv;
+		SaltAndPasswordShaker snp = new SaltAndPasswordShaker();
+		temp.getPasswordHash();
+		temp.getSalt();
+		if (!(temp.getPasswordHash().equals(new SaltAndPasswordShaker().hashPassword(pass, temp.getSalt())))) {
+			return returnToLogin(session, "Password wrong!");
+		}
+		//TODO implement brute force block?
+		
+		//authenticated
+		else {
+			session.setAttribute("user", name);
+			session.setAttribute("login", true);
+			return new ModelAndView("redirect:index.secu");
+		}
     }
 
     @RequestMapping(value = "/adminlogin.secu", method = RequestMethod.POST)
