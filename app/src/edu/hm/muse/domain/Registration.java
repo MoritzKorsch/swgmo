@@ -61,6 +61,8 @@ public class Registration {
 				return returnToRegistration(session, "Something went wrong...");
 			} finally {
 				if (temp > 0) return returnToRegistration(session, "User already exists");
+				
+				
 				//TODO insert User with salt and hashed password
 			}
 		}

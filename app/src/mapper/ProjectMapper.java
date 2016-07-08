@@ -11,12 +11,11 @@ public class ProjectMapper implements RowMapper<Project> {
 
 	@Override
 	public Project mapRow(ResultSet r, int i) throws SQLException {
-		Project p = new Project( 
+		return new Project( 
 				r.getInt("ID"), 
 				r.getString("name"), 
 				r.getString("description"), 
-				r.getInt("ownerID") );
-		return p;
+				r.getInt("ownerID"));
 	}
 
 }
