@@ -1,26 +1,77 @@
 package edu.hm.muse.controller;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import stuff.SessionInfo;
 
 @Controller
 public class ProjectController {
 	
+	private JdbcTemplate jdbcTemplate;
+
+	@Resource(name = "dataSource")
+	public void setDataSource(DataSource dataSource) {
+		jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
 	@RequestMapping(value = "/projects.secu", method = RequestMethod.GET)
-	public ModelAndView showProjectsOverview(HttpSession session) {
+	public ModelAndView showProjectsOverview(HttpSession session, SessionInfo info) {
 		ModelAndView mv = new ModelAndView("projects");
 		
+		String sql = "SELECT count(*) FROM PROJECTS";
+		int projCount = jdbcTemplate.queryForInt(sql);
+		
+		if(projCount == 0) {
+			mv.addObject("projCount", projCount);
+			return mv;
+		}
+		mv.addObject("projCount", projCount);
 		return mv;
 	}
 	
-	@RequestMapping(value = "/projectsCreate.secu", method = RequestMethod.GET)
-	public ModelAndView createProject(HttpSession session) {
+	@RequestMapping(value = "/projectCreate.secu", method = RequestMethod.GET)
+	public ModelAndView createProject(
+			HttpSession session,
+			@RequestParam(value = "msg", required = false) String msg
+			) {
 		ModelAndView mv = new ModelAndView("projectCreate");
+		mv.addObject("msg", msg);
+		return mv;
+	}
+	
+	@RequestMapping(value = "/projectSave.secu", method = RequestMethod.POST)
+	public ModelAndView saveProject(
+			@RequestParam(value = "name", required = true) String name,
+			@RequestParam(value = "description", required = true) String desc,
+			HttpSession session,
+			SessionInfo info
+			) {
 		
+		if(name == null || name == "" || name.isEmpty()) {
+			return invalidForm("A project needs a name");
+		}
+		if(desc == null || desc == "" || desc.isEmpty()) {
+			return invalidForm("A project needs a description");
+		}
+		
+		String sql = "INSERT INTO PROJECTS (name, description, creatorID) values (?, ?, ?)";
+		try{
+			jdbcTemplate.update( sql, new Object[] { name, desc, info.getUserID(session) } );
+		}catch(Exception e){
+			return new ModelAndView("redirect : errorpage.secu");
+		}
+		
+		ModelAndView mv = new ModelAndView("redirect:projects.secu");
+		mv.addObject("msg", "Project created successfully");
 		return mv;
 	}
 	
@@ -35,5 +86,11 @@ public class ProjectController {
 	public ModelAndView deleteProject(HttpSession session){
 		
 		return new ModelAndView("redirect:projects.secu");
+	}
+	
+	private ModelAndView invalidForm(String msg) {
+		ModelAndView mv = new ModelAndView("redirect:projectCreate.secu");	
+		mv.addObject("msg", msg);	
+		return mv;
 	}
 }

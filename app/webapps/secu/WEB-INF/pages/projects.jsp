@@ -1,8 +1,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <jsp:include page="../../head.jsp"/>
-<h3>Projects Overview: <c:out value="${loggedIn}"/></h3>
-
+<h3>Projects Overview: <c:out value="${projCount}"/></h3>
+<c:if test="${msg != null || msg != '' || !msg.isEmpty()}">
+	<p><c:out value="${msg}"/></p>
+</c:if>
 <p>
 <form action="projectCreate.secu" method="get">
 	<input type="submit" value="create">					
