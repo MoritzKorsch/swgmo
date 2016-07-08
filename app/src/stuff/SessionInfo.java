@@ -10,6 +10,7 @@ public class SessionInfo {
 	public SessionInfo() {}
 	
 	public boolean isLoggedIn(HttpSession session) {
+		System.out.println(session.getAttribute("loggedIn"));
 		if (session.getAttribute("loggedIn") != null || (Boolean)session.getAttribute("loggedIn") ) {
 			this.loggedIn = true;
 		}

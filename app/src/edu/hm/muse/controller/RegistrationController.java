@@ -5,6 +5,7 @@ import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,7 @@ import authentication.Token;
 import stuff.PatternChecker;
 import stuff.SessionInfo;
 
+@Controller
 public class RegistrationController {
 	
 	private JdbcTemplate jdbcTemplate;
@@ -39,7 +41,6 @@ public class RegistrationController {
 			@RequestParam(value = "pass", required = false) String pass,
 			@RequestParam(value = "passConf", required = false) String passConf,
 			@RequestParam(value = "Token", required = false) Token token, HttpSession session, SessionInfo sessionInfo) {
-		
 		
 		if (name == null || pass == null || passConf == null || name == "" || pass == "" || passConf == "" 
 				|| !pass.equals(passConf)) {
@@ -74,7 +75,7 @@ public class RegistrationController {
 		
 		//no instant sign in for security reasons
 		ModelAndView mv = new ModelAndView("login");
-		mv.addObject("msg", "Login");
+		mv.addObject("msg", "login");
 		mv.addObject("isLoggedIn", sessionInfo.isLoggedIn(session));
 		
 		return mv;
