@@ -104,7 +104,7 @@ public class Logincontroller {
     	if (null == mname || null == mpwd || mname.isEmpty() || mpwd.isEmpty()) {
             return returnToLogin(session, "Required Fields mustn't be empty!");
     		//throw new SuperFatalAndReallyAnnoyingException("required fields must not be empty!");
-        } else if (null == token || !(new Authentication().authenticate((Token) session.getAttribute("Token"), token))) {
+        } else if (null == token || !(new Authentication().authenticateToken((Token) session.getAttribute("Token"), token))) {
         	return returnToLogin(session, "Authentication error!");
         }
     	
@@ -206,7 +206,6 @@ public class Logincontroller {
     }
 
     private ModelAndView returnToLogin(HttpSession session, String msg) {
-        //Ohhhhh not correct try again
         ModelAndView mv = new ModelAndView("login");
         mv.addObject("msg", msg);
         session.setAttribute("login", false);

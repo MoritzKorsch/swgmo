@@ -4,13 +4,13 @@ public class Text {
 	
 	private final int id;
 	private String title, body;
-	private final User op;
+	private int projectID;
 	
-	public Text(int id, String title, String body, User op) {
+	public Text(int id, String title, String body, int projectID) {
 		this.id = id;
 		this.title = title;
 		this.body = body;
-		this.op = op;
+		this.projectID = projectID;
 	}
 	
 	public int getId() {
@@ -31,7 +31,10 @@ public class Text {
 		title = newBody;
 	}
 	
-	public User getOp() {
-		return op;
+	public int getProjectID() {
+		return projectID;
+	}
+	public void setProjectID(int newProjectID) {
+		projectID = newProjectID;
 	}
 }
